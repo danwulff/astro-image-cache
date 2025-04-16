@@ -1,0 +1,60 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'npm'
+      - name: Restore cached images
+        id: cache-images-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: cache
+          key: ${{ runner.os }}-images
+      - name: Install
+        run: npm ci --fund=false --progress=false
+      - name: Build prod
+        run: npm run build
+      - name: Install gh actions-cache extension
+        run: gh extension install actions/gh-actions-cache
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Check if cache exists for current branch
+        id: actions-cache-list
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "RESULT=$(gh actions-cache list --branch ${{ github.ref }})" >> $GITHUB_OUTPUT
+      - name: Clear existing cache
+        if: ${{ steps.actions-cache-list.outputs.RESULT != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh actions-cache delete ${{ steps.cache-images-restore.outputs.cache-primary-key }} --branch ${{ github.ref }} --confirm
+      - name: Save images
+        id: cache-images-save
+        uses: actions/cache/save@v4
+        with:
+          path: cache
+          key: ${{ steps.cache-images-restore.outputs.cache-primary-key }}
