@@ -42,18 +42,17 @@ jobs:
         run: gh extension install actions/gh-actions-cache
         env:
           GH_TOKEN: ${{ github.token }}
-      - name: Check if cache exists for current branch
+      - name: Check if images cache exists for current branch
         id: actions-cache-list
         env:
           GH_TOKEN: ${{ github.token }}
         run: echo "RESULT=$(gh actions-cache list --branch ${{ github.ref }} --key Images-)" >> $GITHUB_OUTPUT
-      - name: Clear existing cache
+      - name: Clear existing images cache
         if: ${{ steps.actions-cache-list.outputs.RESULT != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh actions-cache delete ${{ steps.cache-images-restore.outputs.cache-primary-key }} --branch ${{ github.ref }} --confirm
-      - name: Save images
-        id: cache-images-save
+      - name: Cache images
         uses: actions/cache/save@v4
         with:
           path: cache
