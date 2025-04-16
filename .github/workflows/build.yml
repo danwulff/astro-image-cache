@@ -47,8 +47,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: echo "RESULT=$(gh actions-cache list --branch ${{ github.ref }} --key Images-)" >> $GITHUB_OUTPUT
-      - name: Check output
-        run: echo "${{ steps.actions-cache-list.outputs.RESULT }}"
       - name: Clear existing cache
         if: ${{ steps.actions-cache-list.outputs.RESULT != '' }}
         env:
