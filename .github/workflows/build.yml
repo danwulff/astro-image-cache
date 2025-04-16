@@ -33,7 +33,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: cache
-          key: ${{ runner.os }}-images
+          key: Images-${{ runner.os }}
       - name: Install
         run: npm ci --fund=false --progress=false
       - name: Build prod
@@ -46,7 +46,7 @@ jobs:
         id: actions-cache-list
         env:
           GH_TOKEN: ${{ github.token }}
-        run: echo "RESULT=$(gh actions-cache list --branch ${{ github.ref }})" >> $GITHUB_OUTPUT
+        run: echo "RESULT=$(gh actions-cache list --branch ${{ github.ref }}) --key Images-" >> $GITHUB_OUTPUT
       - name: Clear existing cache
         if: ${{ steps.actions-cache-list.outputs.RESULT != '' }}
         env:
